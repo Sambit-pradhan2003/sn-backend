@@ -24,7 +24,7 @@ const registeruser= asynchandaler(async (req,res)=>{
     }
 
 
-     const existeduser=User.findOne({
+     const existeduser= await User.findOne({
         $or:[{email},{username}]
     })
 
@@ -34,8 +34,11 @@ const registeruser= asynchandaler(async (req,res)=>{
 
 
 
-    const avatarlocalpath=req.files?.avatar[0]?.path
-    const coverimagelocalpath= req.files?.coverimage[0]?.path;
+    const avatarlocalpath=req.files?.avatar[0]?.path;
+    let coverimagelocalpath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+        coverimagelocalpath = req.files.coverImage[0].path
+    }
 
     if(!avatarlocalpath){
         throw new apierror(404,"avataris required")
