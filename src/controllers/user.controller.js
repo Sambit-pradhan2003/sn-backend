@@ -17,9 +17,9 @@ const registeruser= asynchandaler(async (req,res)=>{
     //cheack user creation 
     //return res
 
-    const {fullname,email,username,password}=req.body
+    const {fullName,email,username,password}=req.body
 
-    if([fullname,email,username,password].some((field)=>field?.trim()==="")){
+    if([fullName,email,username,password].some((field)=>field?.trim()==="")){
         throw new apierror(400,"all feilds are required")
     }
 
@@ -48,7 +48,6 @@ const registeruser= asynchandaler(async (req,res)=>{
 
 
 
-
     const avatar=await uploadoncloudinary(avatarlocalpath)
     const coverImage=await uploadoncloudinary(coverimagelocalpath)
     
@@ -59,7 +58,7 @@ const registeruser= asynchandaler(async (req,res)=>{
 
 
     const user=await User.create({
-        fullname,
+        fullName,
         avatar:avatar.url,
         coverImage:coverImage?.url||"",
         email,
