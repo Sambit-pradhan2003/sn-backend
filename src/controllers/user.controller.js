@@ -174,24 +174,25 @@ const logoutuser=asynchandaler(async(req,res)=>{
 })
 
 const refreshacesstoken= asynchandaler(async(req,res)=>{
-    const incommingrefreshtoken=req.cookies.refreshToken|| req.body.refreshToken
 
+    const incommingrefreshtoken= req.cookies.refreshToken || req.body.refreshToken
+    console.log(incommingrefreshtoken)
 
-    if(incommingrefreshtoken){
+    if(!incommingrefreshtoken){
         throw new apierror(401,"unauthorised request")
     }
 
     try {
-        const decodedtoken=jwt.verify(incommingrefreshtoken,REFRESH_TOKEN_SECRET)
+        const decodedtoken=jwt.verify(incommingrefreshtoken,process.env.REFRESH_TOKEN_SECRET)
     
-        const user=User.findById(decodedtoken?._id)
+        const user=await User.findById(decodedtoken?._id)
     
         if(!user){
             throw new apierror(401,"inva;id refresh token")
         }
     
-        if(incommingrefreshtoken!==refreshToken){
-            throw new apierror," refreshtoken is expired "
+        if(incommingrefreshtoken!==user?.refreshToken){
+            throw new apierror(401, "Refresh token is expired");
         }
     
         const options={
