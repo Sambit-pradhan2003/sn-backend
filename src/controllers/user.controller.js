@@ -261,7 +261,7 @@ const updateaccountdetails=asynchandaler(async(req,res)=>{
     if(!fullName ||!email){
         throw new apierror(400,"all feilds are requrired")
     }
-    const user =User.findByIdAndUpdate(
+    const user =await User.findByIdAndUpdate(
         req,user?._id,
         {
             $set:{
