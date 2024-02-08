@@ -4,6 +4,7 @@ import {User} from "../models/user.model.js"
 import{uploadoncloudinary} from "../utils/cloudinary.js"
 import {apiresponse} from "../utils/apiresponse.js"
 import jwt from "jsonwebtoken"
+import mongoose from "mongoose"
 
 
 const generateacesstokebandrefreshtoken= (async (userid)=>{
@@ -345,7 +346,116 @@ const updatecoverimsge=asynchandaler(async(req,res)=>{
     
 })
 
-const x= "oiugifgu"
+const getuserchannelprofile= asynchandaler(async(req,res)=>{
+    const {username}=req.params
+
+
+    if(!username?.trim()){
+        throw new apierror(400,"user name is missing")
+    }
+
+    const channel=await User.aggregate([
+        {
+            $match:{
+                username:username?.toLowerCase()
+            }
+        },{
+            $lookup:{
+                from:"Subscriptions",
+                localField:"_id",
+                foreignField:"channel",
+                as:"subscibers"
+            }
+        },{
+            $lookup:{
+                from:"Subscriptions",
+                localField:"_id",
+                foreignField:"subscriber",
+                as:"subscribedto"
+            }
+        },{
+            $addFields:{
+                subscriberscount:{
+                    $size:"$subscibers"
+                },
+                channelsubscibedtocount:{
+                    $size:"$subscribedto"
+                },
+                issubscribed:{
+                    $cond:{
+                        if:{$in:[req.user?._id,"$subscibers.subscriber"]},
+                        then:true,
+                        else:false
+                    }
+                }
+            }
+        },{
+            $project:{
+                fullName:1,
+                username:1,
+                subscriberscount:1,
+                channelsubscibedtocount:1,
+                issubscribed:1,
+                avatar:1,
+                coverImage:1,
+                email:11
+
+            }
+        }
+    ])
+
+    if(!channel?.length){
+        throw new apierror(400,'channel not exist')
+    }
+    return res.status(200)
+    .json(
+        new apiresponse(200,channel[0],"user channel crate sucessfully")
+    )
+})
+
+const getwatchhistory=asynchandaler(async(req,res)=>{
+    const user=await User.aggregate([
+        {
+            $match:{
+                _id:new mongoose.Types.ObjectId(req.user._id)
+            }
+        },{
+            $lookup:{
+                from:"videos",
+                localField:"watchHistory",
+                foreignField:"_id",
+                as:"watchhistory",
+                pipeline:[
+                    {
+                        $lookup:{
+                            from:"users",
+                            localField:"owner",
+                            foreignField:"_id",
+                            as:"owner",
+                            pipeline:[
+                                {
+                                    $project:{
+                                        fullName:1,
+                                        username:1,
+                                        avatar:1
+                                    }
+                                }
+                            ]
+                        }
+                    },{
+                    $addFields:{
+                        owner:{
+                           $first:"$owner" 
+                        }
+                    }}
+
+                ]
+            }
+        }
+    ])
+    return res.status(200)
+    .json(new apiresponse(200,user[0].watchHistory,"watchhistory featchedbsucessfully"))
+})
 
 export {
     registeruser,
@@ -356,4 +466,6 @@ export {
     updateaccountdetails,
     updatecoverimsge,
     updateuseravatar,
+    getuserchannelprofile,
+    getwatchhistory
     }
