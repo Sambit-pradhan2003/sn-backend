@@ -237,7 +237,6 @@ const changecurrentpassword=asynchandaler(async(req,res)=>{
 
     user.password=newpassword
     await user.save({validateBeforeSave:false})
-
     return res.status(200)
     .json(
         new apiresponse(200,"password changed sucessfully")
@@ -250,7 +249,7 @@ const changecurrentpassword=asynchandaler(async(req,res)=>{
 const getcurrentuser=asynchandaler(async(req,res)=>{
     return res
     .status(200)
-    .json(200,req.user,"current userfeatched sucessfully")
+    .json(new apiresponse(200,req.user,"current userfeatched sucessfully"))
 })
 
 
@@ -263,7 +262,7 @@ const updateaccountdetails=asynchandaler(async(req,res)=>{
         throw new apierror(400,"all feilds are requrired")
     }
     const user =await User.findByIdAndUpdate(
-        req,user?._id,
+        req.user?._id,
         {
             $set:{
                 fullName,
@@ -315,15 +314,15 @@ const updateuseravatar=asynchandaler(async(req,res)=>{
 
 const updatecoverimage=asynchandaler(async(req,res)=>{
     const coverlocalpath=req.file?.path
-
+    console.log(coverlocalpath)
     if(!coverlocalpath){
         throw new apierror(400,"cover file missing")
     }
 
 
-    const cover=await uploadoncloudinary(coverlocalpath)
+    const coverImage=await uploadoncloudinary(coverlocalpath)
 
-    if(!cover.url){
+    if(!coverImage.url){
         throw new apierror(400,"error while uploading cover")
     }
 
@@ -331,7 +330,7 @@ const updatecoverimage=asynchandaler(async(req,res)=>{
         req.user?._id,
         {
             $set:{
-                cover:cover.url
+                coverImage:coverImage.url
             }
         },
         {new:true}
@@ -353,52 +352,58 @@ const getuserchannelprofile= asynchandaler(async(req,res)=>{
     if(!username?.trim()){
         throw new apierror(400,"user name is missing")
     }
+    
 
-    const channel=await User.aggregate([
+
+    const channel = await User.aggregate([
         {
-            $match:{
-                username:username?.toLowerCase()
+            $match: {
+                username: username?.toLowerCase()
             }
-        },{
-            $lookup:{
-                from:"Subscriptions",
-                localField:"_id",
-                foreignField:"channel",
-                as:"subscibers"
+        },
+        {
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "channel",
+                as: "subscribers"
             }
-        },{
-            $lookup:{
-                from:"Subscriptions",
-                localField:"_id",
-                foreignField:"subscriber",
-                as:"subscribedto"
+        },
+        {
+            $lookup: {
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "subscriber",
+                as: "subscribedTo"
             }
-        },{
-            $addFields:{
-                subscriberscount:{
-                    $size:"$subscibers"
+        },
+        {
+            $addFields: {
+                subscribersCount: {
+                    $size: "$subscribers"
                 },
-                channelsubscibedtocount:{
-                    $size:"$subscribedto"
+                channelsSubscribedToCount: {
+                    $size: "$subscribedTo"
                 },
-                issubscribed:{
-                    $cond:{
-                        if:{$in:[req.user?._id,"$subscibers.subscriber"]},
-                        then:true,
-                        else:false
+                isSubscribed: {
+                    $cond: {
+                        if: {$in: [req.user?._id, "$subscribers.subscriber"]},
+                        then: true,
+                        else: false
                     }
                 }
             }
-        },{
-            $project:{
-                fullName:1,
-                username:1,
-                subscriberscount:1,
-                channelsubscibedtocount:1,
-                issubscribed:1,
-                avatar:1,
-                coverImage:1,
-                email:11
+        },
+        {
+            $project: {
+                fullName: 1,
+                username: 1,
+                subscribersCount: 1,
+                channelsSubscribedToCount: 1,
+                isSubscribed: 1,
+                avatar: 1,
+                coverImage: 1,
+                email: 1
 
             }
         }
