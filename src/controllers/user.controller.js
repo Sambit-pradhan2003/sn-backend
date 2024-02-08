@@ -345,6 +345,8 @@ const updatecoverimsge=asynchandaler(async(req,res)=>{
     
 })
 
+const x= "oiugifgu"
+
 export {
     registeruser,
     loginuser,
