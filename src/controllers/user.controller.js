@@ -313,7 +313,7 @@ const updateuseravatar=asynchandaler(async(req,res)=>{
     
 })
 
-const updatecoverimsge=asynchandaler(async(req,res)=>{
+const updatecoverimage=asynchandaler(async(req,res)=>{
     const coverlocalpath=req.file?.path
 
     if(!coverlocalpath){
@@ -464,8 +464,8 @@ export {
     refreshacesstoken,
     changecurrentpassword,
     updateaccountdetails,
-    updatecoverimsge,
+    updatecoverimage,
     updateuseravatar,
     getuserchannelprofile,
-    getwatchhistory
+    getwatchhistory,getcurrentuser
     }
