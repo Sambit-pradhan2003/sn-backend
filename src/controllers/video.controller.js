@@ -22,7 +22,7 @@ const getAllVideos = asynchandaler(async (req, res) => {
     
    try {
      const { page, limit, query, sortBy, sortType, userId } = req.query
-     
+     console.log(page, limit, query, sortBy, sortType, userId)
      const pageOptions = {
          page : Number(page) || 0,
          limit : Number(limit) || 10
@@ -31,7 +31,7 @@ const getAllVideos = asynchandaler(async (req, res) => {
      let pipelineArr = [
          {
              $match:{
-                 isPublic:true
+                isPublished:true
              }
          },  
      ]
@@ -48,7 +48,7 @@ const getAllVideos = asynchandaler(async (req, res) => {
             }
         )
      }
- 
+    
      if(sortBy){
          if(sortType == "ascending") {
              pipelineArr.push(
@@ -127,12 +127,7 @@ const getAllVideos = asynchandaler(async (req, res) => {
          )
       )
    } catch (error) {
-    res
-    .status(error?.statusCode||500)
-    .json({
-       status:error?.statusCode||500,
-       message:error?.message||"some error in querying videos"
-    })
+    throw new apierror(500,error,"error at get all video")
    }
 })
 
@@ -211,7 +206,7 @@ const getVideoById = asynchandaler(async (req, res) => {
    try {
      const { videoId } = req.params
      // get video by id
- 
+ console.log(videoId)
      if(!videoId) throw new apierror(400,"videoId missing");
      
      const video = await Video.findOneAndUpdate({
@@ -221,12 +216,15 @@ const getVideoById = asynchandaler(async (req, res) => {
      },{
          new:true
      })
+     console.log(video,"ghjh")
     
      // can update this so that owner can only see through id
-     if(!video || !video?.isPublic) throw new ApiError(400,`video with this ${videoId} is not available`)
+     if(!video || !video?.isPublished) throw new apierror(400,`video with this ${videoId} is not available`)
 
      const userId = req.user?._id;
+     console.log(userId)
      const user = await User.findById(userId);
+     console.log(user)
      
      user.watchHistory.push(videoId);
      await user.save({
@@ -236,12 +234,7 @@ const getVideoById = asynchandaler(async (req, res) => {
      res.status(200)
      .json(new apiresponse(200,video,"got video from id"))
    } catch (error) {
-    res
-    .status(error?.statusCode||500)
-    .json({
-       status:error?.statusCode||500,
-       message:error?.message||"some error in getting video by id"
-    })
+    throw new apierror(500,error,"something went wrong when get video by id")
    }
 })
 
@@ -308,6 +301,7 @@ const deleteVideo = asynchandaler(async (req, res) => {
     // delete video
    try {
      const { videoId } = req.params
+     console.log(videoId)
      
      if(!videoId) throw new apierror(400,"videoId missing");
      
@@ -346,7 +340,7 @@ const togglePublishStatus =asynchandaler(async (req, res) => {
      // check if video is present and user  is logged in 
      // check if the owner is the one who is toggling the status
      // then if all conditions are satisfied then toggle it
-     if(!videoId) throw new ApiError(400,"videoId is absent");
+     if(!videoId) throw new apierror(400,"videoId is absent");
  
      const video = await Video.findById(videoId);
      if(!video) throw new apierror(400,"video with this videoId is missing");
@@ -362,7 +356,7 @@ const togglePublishStatus =asynchandaler(async (req, res) => {
      const updatedUser = await Video.findByIdAndUpdate(
          new mongoose.Types.ObjectId(videoId),
          {
-             isPublic: video.isPublic? false :true  
+            isPublished: video.isPublished? false :true  
          },
          {
              new : true 
