@@ -8,7 +8,8 @@ import {apiresponse} from "../utils/apiresponse.js"
 const createTweet = asynchandaler(async (req, res) => {
     // create tweet
     try {
-       const {content} = req.body;
+       const {content} = req.body
+    console.log(content)
        if(!content) throw new apierror(400,"content is missing")
        const owner = req.user?._id ;
        if(!owner) throw new apierror(400,"user not logged in")
@@ -25,12 +26,7 @@ const createTweet = asynchandaler(async (req, res) => {
        )
        
     } catch (error) {
-        res
-        .status(error.statusCode)
-        .json({
-           status:error.statusCode,
-           message:error.message
-        })
+       throw new apierror(500,error,"error at create tweet")
     }
 })
 
@@ -58,12 +54,7 @@ const getUserTweets = asynchandaler(async (req, res) => {
          new apiresponse(200,tweets,"tweets fetched successfully")
      )
    } catch (error) {
-    res
-    .status(error.statusCode)
-    .json({
-       status:error.statusCode,
-       message:error.message
-    })
+        throw new apierror(400,error,"error at fetch tweet")
    }
 })
 
@@ -92,12 +83,7 @@ const updateTweet = asynchandaler(async (req, res) => {
              new apiresponse(200,{oldContent,tweet},"tweet updated successfully")
             )
     } catch (error) {
-        res
-        .status(error.statusCode)
-        .json({
-           status:error.statusCode,
-           message:error.message
-        })
+       throw new apierror(400,error,"error at update tweet")
      }
 })
 
@@ -117,11 +103,7 @@ const deleteTweet = asynchandaler(async (req, res) => {
      )
    } catch (error) {
     res
-    .status(error.statusCode)
-    .json({
-       status:error.statusCode,
-       message:error.message
-    })
+    throw new apierror(400,"error at delete tweet")
    }
 })
 
