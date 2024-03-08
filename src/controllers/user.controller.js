@@ -474,4 +474,4 @@ export {
     updateuseravatar,
     getuserchannelprofile,
     getwatchhistory,getcurrentuser
-    }
+}
