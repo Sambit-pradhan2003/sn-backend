@@ -32,7 +32,7 @@ const getVideoComments = asynchandaler(async (req, res) => {
      
      res.status(200)
      .json(
-        new ApiResponse(
+        new apiresponse(
          200,
          comments,
          "comments fetched successfully"
@@ -73,31 +73,27 @@ try {
                 
             }
         ]);
+        console.log(video)
     
         if(!video) throw new apierror(404,"video with this id not available");
     
-        const comment = await Comment.create({
+        const newcomment = await comment.create({
               content,
               video:videoId,
               owner
         })
+        console.log(newcomment)
     
         res.status(200)
         .json(
             new apiresponse(
                 200
-                ,comment
+                ,newcomment
                 ,"comment is posted")
         )
     
 } catch (error) {
-    res
-    .status(error?.statusCode||500)
-    .json({
-       status:error?.statusCode||500,
-       message:error?.message||"some error while create comments",
-       originOfError:"comment controller"
-    })   
+    throw new apierror(500,error) 
 }
 })
 
@@ -113,13 +109,13 @@ const updateComment = asynchandaler(async (req, res) => {
       if(!updatedContent) throw new apierror(400,"cant update comment without new content")
       if(!commentId) throw new apierror(400,"comment id is not present");
   
-      const comment = await Comment.findById(commentId);
-      if(!comment) throw new apierror(404,"comment with this id is not present");
+      const acomment = await comment.findById(commentId);
+      if(!acomment) throw new apierror(404,"comment with this id is not present");
   
-      const permission = JSON.stringify(comment?.owner) == JSON.stringify(userId);
+      const permission = JSON.stringify(acomment?.owner) == JSON.stringify(userId);
       if(!permission) throw new apierror(400,"login with owner id");
       
-      const updatedComment = await Comment.findByIdAndUpdate(
+      const updatedComment = await comment.findByIdAndUpdate(
           commentId,
           {
               content:updatedContent
@@ -136,14 +132,9 @@ const updateComment = asynchandaler(async (req, res) => {
               "comment is updated"
               )
       )
-  } catch (error) {
-    res
-    .status(error?.statusCode||500)
-    .json({
-       status:error?.statusCode||500,
-       message:error?.message||"some error while updating video comments",
-       originOfError:"comment controller"
-    })
+  } 
+  catch (error) {
+    throw new apierror(500,error)
   }
 })
 
@@ -158,13 +149,13 @@ const deleteComment = asynchandaler(async (req, res) => {
   
      if(!commentId) throw new apierror(400,"comment id is not present");
  
-     const comment = await Comment.findById(commentId);
-     if(!comment) throw new apierror(404,"comment with this id is not present");
+     const dcomment = await comment.findById(commentId);
+     if(!dcomment) throw new apierror(404,"comment with this id is not present");
  
-     const permission = JSON.stringify(comment?.owner) == JSON.stringify(userId);
+     const permission = JSON.stringify(dcomment?.owner) == JSON.stringify(userId);
      if(!permission) throw new apierror(400,"login with owner id");
  
-     await Comment.findByIdAndDelete(commentId);
+     await comment.findByIdAndDelete(commentId);
      
      res.status(200)
      .json(
@@ -176,13 +167,7 @@ const deleteComment = asynchandaler(async (req, res) => {
          )
      )
    } catch (error) {
-    res
-    .status(error?.statusCode||500)
-    .json({
-       status:error?.statusCode||500,
-       message:error?.message||"some error while deleting video comments",
-       originOfError:"comment controller"
-    })
+    throw new apierror(500,error)
    }
 })
 

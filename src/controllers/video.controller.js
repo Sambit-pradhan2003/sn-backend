@@ -22,7 +22,6 @@ const getAllVideos = asynchandaler(async (req, res) => {
     
    try {
      const { page, limit, query, sortBy, sortType, userId } = req.query
-     console.log(page, limit, query, sortBy, sortType, userId)
      const pageOptions = {
          page : Number(page) || 0,
          limit : Number(limit) || 10
@@ -79,7 +78,6 @@ const getAllVideos = asynchandaler(async (req, res) => {
             }
         )
      }
-     console.log("After $match stages:", pipelineArr);
      pipelineArr.push(
          {
              $lookup:{
@@ -116,7 +114,7 @@ const getAllVideos = asynchandaler(async (req, res) => {
      .skip(pageOptions.limit * pageOptions.page)
      .limit(pageOptions.limit)
      
-      console.log(result,"result")   
+         
       res
       .status(200)
       .json(
