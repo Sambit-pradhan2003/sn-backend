@@ -158,21 +158,28 @@ const loginuser=asynchandaler(async(req,res)=>{
 })
 
 const logoutuser=asynchandaler(async(req,res)=>{
-    await User.findByIdAndUpdate(req.user._id,{
+    if (!req.user) {
+        console.log("not there")
+    }
+    const user=await User.findByIdAndUpdate(req.user._id,{
         $set:{refreshToken:undefined}
     },{
         new:true
     }
     )
+    if (!user) {
+        console.log("at user")
+    }
+    req.user = null;
     const options={
         httpOnly:true,
         secure:true
     }
     return res 
     .status(200)
-    .clearCookie("acessToken")
+    .clearCookie("accessToken")
     .clearCookie("refreshToken")
-    .json(new apiresponse(200,{},"user logged out"))
+    .json(new apiresponse(200,{},"user logged out at"))
 })
 
 const refreshacesstoken= asynchandaler(async(req,res)=>{
