@@ -4,13 +4,20 @@ import cookieParser from "cookie-parser"
 
 
 
-
+const allowedOrigins = ['https://snapi28.netlify.app', 'http://localhost:5173'];
 
 const app =express()
 
 app.use(cors({
-    origin:process.env.CORS_ORIGIN,
-    credentials:true
+    origin: function(origin, callback) {
+        if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
+      methods: ['GET', 'POST'],
+      allowedHeaders: ['Content-Type']
 }))
 
 app.use(express.json({limit:"16kb"}))
